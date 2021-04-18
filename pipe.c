@@ -4,6 +4,7 @@
 int main(){
   int fd[2];
   if(pipe(fd) == -1){
+    //pipe return -1 on failure
     printf("Pipe Creation Failed Successfully");
     return 1;
   }
