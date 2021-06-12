@@ -1,45 +1,43 @@
 #include<stdio.h>
-#include<sys/types.h>
+#include<stdlib.h>
+#include<sys/wait.h>
 #include<unistd.h>
-#include<string.h>
-int receive_msg(int fd[]){
-	close(fd[1]);
-	char y[30];
-	int x;
-	read(fd[0],y,sizeof(y));
-	close(fd[0]);
-	sscanf(y,"%d",&x);
-	return x;
-}
-void send_msg(int fd[]){
-	close(fd[0]);
-	char y[30];
-	printf("Enter the Number:");
-	fgets(y,sizeof(y),stdin);
-	//scanf("%d",y);
-	write(fd[1],y,sizeof(y));
-	close(fd[1]);
-}
 int main(){
 	int fd[2];
-	int n;
-	if(pipe(fd) == -1){	//pipe return -1 on failure
-		printf("Pipe Creation Failed Successfully");
-		return 1;
+	if(pipe(fd)==-1){
+		printf("Error");
 	}
-	pid_t id = fork();
-	if(id < 0){
+	int pid = fork();
+	if(pid == -1){
 		printf("Fork Creation Failed Successfully");
-		return 1;
-	}else if(id == 0){	//child process
-		n = receive_msg(fd);
-		for(int i=0;i<=n;i++){
-			if(i%2!=0)
-				printf("%d \t",i);
+	}
+	if(pid ==0){	//Child Process
+		close(fd[1]);
+		int arr[10];
+		int n;
+		read(fd[0],&n,sizeof(int));
+		read(fd[0],arr,sizeof(int) *n);
+		for(int i=0;i<n;i++){
+			printf("%d \t",arr[i]);
 		}
 		printf("\n");
-	}else{	//parent process
-		send_msg(fd);
+		close(fd[0]);
+
+	}else{	//Parent Process
+		close(fd[0]);
+		int arr[10];
+		int n,i,k=0;
+		printf("Enter a number");
+		scanf("%d",&n);
+		for(i=0;i<=n;i++){
+			if(i%2==1){
+				arr[k]=i;
+				k++;
+			}
+		}
+		write(fd[1],&k,sizeof(int));
+		write(fd[1], arr, sizeof(int) * n);
+		close(fd[1]);
 	}
 	return 0;
 }
